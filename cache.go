@@ -22,8 +22,9 @@ func NewAbstractRepositoryWithCache[T any](collection *mongo.Collection, cache a
 		abstractRepo: abstractRepo[T]{
 			collection: collection,
 		},
-		cache: cache,
-		rKey:  radicalKey,
+		cache:    cache,
+		rKey:     radicalKey,
+		expCache: expCache,
 	}
 }
 
