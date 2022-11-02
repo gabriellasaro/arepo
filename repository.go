@@ -18,7 +18,7 @@ func NewAbstractRepository[T any](collection *mongo.Collection) AbstractReposito
 	}
 }
 
-func (a *abstractRepo[T]) Get(ctx context.Context, id ID, opts ...*options.FindOneOptions) (*T, error) {
+func (a *abstractRepo[T]) GetByID(ctx context.Context, id ID, opts ...*options.FindOneOptions) (*T, error) {
 	return FindOneByID[T](ctx, a.collection, id, opts...)
 }
 
@@ -42,11 +42,6 @@ func (a *abstractRepo[T]) UpdateOneByID(ctx context.Context, id ID, update any, 
 
 func (a *abstractRepo[T]) DeleteOneByID(ctx context.Context, id ID, opts ...*options.DeleteOptions) error {
 	return DeleteOneByID(ctx, a.collection, id, opts...)
-}
-
-type selectAndOmitFields[T any] struct {
-	collection    *mongo.Collection
-	setProjection bson.D
 }
 
 func (a *abstractRepo[T]) Select(fields ...string) SelectAndOmitFields[T] {
@@ -75,6 +70,11 @@ func (a *abstractRepo[T]) Omit(fields ...string) SelectAndOmitFields[T] {
 	}
 }
 
+type selectAndOmitFields[T any] struct {
+	collection    *mongo.Collection
+	setProjection bson.D
+}
+
 func (s *selectAndOmitFields[T]) Select(fields ...string) SelectAndOmitFields[T] {
 	for i := range fields {
 		s.setProjection = append(s.setProjection, bson.E{Key: fields[i], Value: 1})
@@ -91,7 +91,7 @@ func (s *selectAndOmitFields[T]) Omit(fields ...string) SelectAndOmitFields[T] {
 	return s
 }
 
-func (s *selectAndOmitFields[T]) Get(ctx context.Context, id ID) (*T, error) {
+func (s *selectAndOmitFields[T]) GetByID(ctx context.Context, id ID) (*T, error) {
 	if len(s.setProjection) == 0 {
 		return nil, ErrNotSelectOmitFields
 	}
