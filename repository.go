@@ -56,6 +56,10 @@ func (a *abstractRepo[T]) DeleteOneByID(ctx context.Context, id ID, opts ...*opt
 	return DeleteOneByID(ctx, a.collection, id, opts...)
 }
 
+func (a *abstractRepo[T]) DeleteOne(ctx context.Context, filter any, opts ...*options.DeleteOptions) error {
+	return DeleteOne(ctx, a.collection, filter, opts...)
+}
+
 func (a *abstractRepo[T]) Select(fields ...string) SelectAndOmitFields[T] {
 	setProjection := bson.D{}
 
