@@ -48,6 +48,10 @@ func (a *abstractRepo[T]) UpdateOneByID(ctx context.Context, id ID, update any) 
 	return UpdateOneByID(ctx, a.collection, id, update)
 }
 
+func (a *abstractRepo[T]) UpdateOne(ctx context.Context, filter, update any, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
+	return UpdateOne(ctx, a.collection, filter, update, opts...)
+}
+
 func (a *abstractRepo[T]) DeleteOneByID(ctx context.Context, id ID, opts ...*options.DeleteOptions) error {
 	return DeleteOneByID(ctx, a.collection, id, opts...)
 }

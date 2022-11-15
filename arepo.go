@@ -26,6 +26,7 @@ type AbstractRepository[T any] interface {
 	InsertOne(ctx context.Context, document *T, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error)
 	InsertMany(ctx context.Context, documents []*T, opts ...*options.InsertManyOptions) (*mongo.InsertManyResult, error)
 	UpdateOneByID(ctx context.Context, id ID, update any) error
+	UpdateOne(ctx context.Context, filter, update any, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error)
 	DeleteOneByID(ctx context.Context, id ID, opts ...*options.DeleteOptions) error
 	WithCache(cache acache.Cache[acache.Key], radicalKey acache.Key, expCache time.Duration) AbstractRepositoryWithCache[T]
 }
