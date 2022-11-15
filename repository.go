@@ -36,8 +36,8 @@ func (a *abstractRepo[T]) InsertMany(ctx context.Context, documents []*T, opts .
 	return a.collection.InsertMany(ctx, docs, opts...)
 }
 
-func (a *abstractRepo[T]) UpdateOneByID(ctx context.Context, id ID, update any, opts ...*options.UpdateOptions) error {
-	return UpdateOneByID(ctx, a.collection, id, update, opts...)
+func (a *abstractRepo[T]) UpdateOneByID(ctx context.Context, id ID, update any) error {
+	return UpdateOneByID(ctx, a.collection, id, update)
 }
 
 func (a *abstractRepo[T]) DeleteOneByID(ctx context.Context, id ID, opts ...*options.DeleteOptions) error {

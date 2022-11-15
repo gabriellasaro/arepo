@@ -50,8 +50,19 @@ func Find[T any](ctx context.Context, collection *mongo.Collection, filter any, 
 	return list, nil
 }
 
-func UpdateOne(ctx context.Context, collection *mongo.Collection, filter, update any, opts ...*options.UpdateOptions) error {
-	r, err := collection.UpdateOne(ctx, filter, update, opts...)
+func UpdateOne(ctx context.Context, collection *mongo.Collection, filter, update any, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
+	return collection.UpdateOne(ctx, filter, update, opts...)
+}
+
+func UpdateOneByID(ctx context.Context, collection *mongo.Collection, id ID, update any) error {
+	r, err := UpdateOne(
+		ctx,
+		collection,
+		bson.M{
+			"_id": primitive.ObjectID(id),
+		},
+		update,
+	)
 	if err != nil {
 		return err
 	}
@@ -65,18 +76,6 @@ func UpdateOne(ctx context.Context, collection *mongo.Collection, filter, update
 	}
 
 	return nil
-}
-
-func UpdateOneByID(ctx context.Context, collection *mongo.Collection, id ID, update any, opts ...*options.UpdateOptions) error {
-	return UpdateOne(
-		ctx,
-		collection,
-		bson.M{
-			"_id": primitive.ObjectID(id),
-		},
-		update,
-		opts...,
-	)
 }
 
 func DeleteOne(ctx context.Context, collection *mongo.Collection, filter any, opts ...*options.DeleteOptions) error {

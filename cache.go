@@ -48,10 +48,10 @@ func (a *abstractRepoWithCache[T]) GetByID(ctx context.Context, id ID, opts ...*
 	return data, nil
 }
 
-func (a *abstractRepoWithCache[T]) UpdateOneByID(ctx context.Context, id ID, update any, opts ...*options.UpdateOptions) error {
+func (a *abstractRepoWithCache[T]) UpdateOneByID(ctx context.Context, id ID, update any) error {
 	a.deleteCache(id)
 
-	return a.repo.UpdateOneByID(ctx, id, update, opts...)
+	return a.repo.UpdateOneByID(ctx, id, update)
 }
 
 func (a *abstractRepoWithCache[T]) DeleteOneByID(ctx context.Context, id ID, opts ...*options.DeleteOptions) error {
