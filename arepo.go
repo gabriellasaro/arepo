@@ -19,6 +19,8 @@ var (
 
 type AbstractRepository[T any] interface {
 	GetByID(ctx context.Context, id ID, opts ...*options.FindOneOptions) (*T, error)
+	FindOne(ctx context.Context, filter any, opts ...*options.FindOneOptions) (*T, error)
+	Find(ctx context.Context, filter any, opts ...*options.FindOptions) ([]*T, error)
 	Select(fields ...string) SelectAndOmitFields[T]
 	Omit(fields ...string) SelectAndOmitFields[T]
 	InsertOne(ctx context.Context, document *T, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error)
@@ -32,6 +34,12 @@ type AbstractRepositoryWithCache[T any] interface {
 	GetByID(ctx context.Context, id ID, opts ...*options.FindOneOptions) (*T, error)
 	UpdateOneByID(ctx context.Context, id ID, update any) error
 	DeleteOneByID(ctx context.Context, id ID, opts ...*options.DeleteOptions) error
+	WithCustomFilter() CacheWithCustomFilter[T]
+}
+
+type CacheWithCustomFilter[T any] interface {
+	FindOne(ctx context.Context, filter any, opts ...*options.FindOneOptions) (*T, error)
+	Find(ctx context.Context, filter any, opts ...*options.FindOptions) ([]*T, error)
 }
 
 type SelectAndOmitFields[T any] interface {

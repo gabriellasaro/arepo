@@ -22,6 +22,14 @@ func (a *abstractRepo[T]) GetByID(ctx context.Context, id ID, opts ...*options.F
 	return FindOneByID[T](ctx, a.collection, id, opts...)
 }
 
+func (a *abstractRepo[T]) FindOne(ctx context.Context, filter any, opts ...*options.FindOneOptions) (*T, error) {
+	return FindOne[T](ctx, a.collection, filter, opts...)
+}
+
+func (a *abstractRepo[T]) Find(ctx context.Context, filter any, opts ...*options.FindOptions) ([]*T, error) {
+	return Find[T](ctx, a.collection, filter, opts...)
+}
+
 func (a *abstractRepo[T]) InsertOne(ctx context.Context, document *T, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error) {
 	return a.collection.InsertOne(ctx, document, opts...)
 }

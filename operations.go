@@ -35,13 +35,13 @@ func FindOneByID[T any](ctx context.Context, collection *mongo.Collection, id ID
 	})
 }
 
-func Find[T any](ctx context.Context, collection *mongo.Collection, filter any, opts ...*options.FindOptions) ([]T, error) {
+func Find[T any](ctx context.Context, collection *mongo.Collection, filter any, opts ...*options.FindOptions) ([]*T, error) {
 	cursor, err := collection.Find(ctx, filter, opts...)
 	if err != nil {
 		return nil, err
 	}
 
-	var list []T
+	var list []*T
 
 	if err := cursor.All(ctx, &list); err != nil {
 		return nil, err
