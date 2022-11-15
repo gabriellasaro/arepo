@@ -45,5 +45,9 @@ type CacheWithCustomFilter[T any] interface {
 }
 
 type SelectAndOmitFields[T any] interface {
+	Select(fields ...string) SelectAndOmitFields[T]
+	Omit(fields ...string) SelectAndOmitFields[T]
 	GetByID(ctx context.Context, id ID) (*T, error)
+	FindOne(ctx context.Context, filter any) (*T, error)
+	Find(ctx context.Context, filter any) ([]*T, error)
 }

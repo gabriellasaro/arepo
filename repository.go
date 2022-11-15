@@ -114,3 +114,11 @@ func (s *selectAndOmitFields[T]) GetByID(ctx context.Context, id ID) (*T, error)
 
 	return FindOneByID[T](ctx, s.collection, id, options.FindOne().SetProjection(s.setProjection))
 }
+
+func (s *selectAndOmitFields[T]) FindOne(ctx context.Context, filter any) (*T, error) {
+	return FindOne[T](ctx, s.collection, filter, options.FindOne().SetProjection(s.setProjection))
+}
+
+func (s *selectAndOmitFields[T]) Find(ctx context.Context, filter any) ([]*T, error) {
+	return Find[T](ctx, s.collection, filter, options.Find().SetProjection(s.setProjection))
+}
