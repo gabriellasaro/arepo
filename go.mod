@@ -1,10 +1,10 @@
-module github.com/gabriellasaro/arepo
+module github.com/lasfh/arepo
 
 go 1.18
 
 require (
 	github.com/gabriellasaro/acache v0.0.0-20220910155549-2f010e646b66
-	go.mongodb.org/mongo-driver v1.10.2
+	go.mongodb.org/mongo-driver v1.11.0
 )
 
 require (

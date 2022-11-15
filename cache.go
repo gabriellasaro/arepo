@@ -15,7 +15,11 @@ type abstractRepoWithCache[T any] struct {
 	expCache time.Duration
 }
 
-func (a *abstractRepo[T]) WithCache(cache acache.Cache[acache.Key], radicalKey acache.Key, expCache time.Duration) AbstractRepositoryWithCache[T] {
+func (a *abstractRepo[T]) WithCache(
+	cache acache.Cache[acache.Key],
+	radicalKey acache.Key,
+	expCache time.Duration,
+) AbstractRepositoryWithCache[T] {
 	return &abstractRepoWithCache[T]{
 		repo:     a,
 		cache:    cache,
