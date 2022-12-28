@@ -26,6 +26,10 @@ func (a *abstractRepo[T]) FindOne(ctx context.Context, filter any, opts ...*opti
 	return FindOne[T](ctx, a.collection, filter, opts...)
 }
 
+func (a *abstractRepo[T]) FindOneAndUpdate(ctx context.Context, filter, update any, opts ...*options.FindOneAndUpdateOptions) (*T, error) {
+	return FindOneAndUpdate[T](ctx, a.collection, filter, update, opts...)
+}
+
 func (a *abstractRepo[T]) Find(ctx context.Context, filter any, opts ...*options.FindOptions) ([]*T, error) {
 	return Find[T](ctx, a.collection, filter, opts...)
 }
@@ -117,6 +121,10 @@ func (s *selectAndOmitFields[T]) GetByID(ctx context.Context, id ID) (*T, error)
 
 func (s *selectAndOmitFields[T]) FindOne(ctx context.Context, filter any) (*T, error) {
 	return FindOne[T](ctx, s.collection, filter, options.FindOne().SetProjection(s.setProjection))
+}
+
+func (s *selectAndOmitFields[T]) FindOneAndUpdate(ctx context.Context, filter, update any) (*T, error) {
+	return FindOneAndUpdate[T](ctx, s.collection, filter, update, options.FindOneAndUpdate().SetProjection(s.setProjection))
 }
 
 func (s *selectAndOmitFields[T]) Find(ctx context.Context, filter any) ([]*T, error) {

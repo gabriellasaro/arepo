@@ -20,6 +20,7 @@ var (
 type AbstractRepository[T any] interface {
 	GetByID(ctx context.Context, id ID, opts ...*options.FindOneOptions) (*T, error)
 	FindOne(ctx context.Context, filter any, opts ...*options.FindOneOptions) (*T, error)
+	FindOneAndUpdate(ctx context.Context, filter, update any, opts ...*options.FindOneAndUpdateOptions) (*T, error)
 	Find(ctx context.Context, filter any, opts ...*options.FindOptions) ([]*T, error)
 	Select(fields ...string) SelectAndOmitFields[T]
 	Omit(fields ...string) SelectAndOmitFields[T]
@@ -49,5 +50,6 @@ type SelectAndOmitFields[T any] interface {
 	Omit(fields ...string) SelectAndOmitFields[T]
 	GetByID(ctx context.Context, id ID) (*T, error)
 	FindOne(ctx context.Context, filter any) (*T, error)
+	FindOneAndUpdate(ctx context.Context, filter, update any) (*T, error)
 	Find(ctx context.Context, filter any) ([]*T, error)
 }

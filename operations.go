@@ -35,6 +35,25 @@ func FindOneByID[T any](ctx context.Context, collection *mongo.Collection, id ID
 	})
 }
 
+func FindOneAndUpdate[T any](ctx context.Context, collection *mongo.Collection, filter, update any, opts ...*options.FindOneAndUpdateOptions) (*T, error) {
+	result := collection.FindOneAndUpdate(ctx, filter, update, opts...)
+	if result.Err() != nil {
+		if errors.Is(result.Err(), mongo.ErrNoDocuments) {
+			return nil, ErrNotFound
+		}
+
+		return nil, result.Err()
+	}
+
+	var data T
+
+	if err := result.Decode(&data); err != nil {
+		return nil, err
+	}
+
+	return &data, nil
+}
+
 func Find[T any](ctx context.Context, collection *mongo.Collection, filter any, opts ...*options.FindOptions) ([]*T, error) {
 	cursor, err := collection.Find(ctx, filter, opts...)
 	if err != nil {
