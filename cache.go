@@ -2,41 +2,45 @@ package arepo
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
-	"encoding/json"
 	"time"
 
-	"github.com/gabriellasaro/acache"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type abstractRepoWithCache[T any] struct {
+type cache[K ~string] interface {
+	GetJSON(ctx context.Context, key K, dest any) error
+	SetJSON(ctx context.Context, key K, value any, exp time.Duration) error
+	Delete(ctx context.Context, key K) error
+}
+
+type abstractRepoWithCache[T any, K ~string] struct {
 	repo      *abstractRepo[T]
-	cache     acache.Cache[acache.Key]
-	rKey      acache.Key
-	rKeyForID acache.Key
+	cache     cache[K]
+	rKey      K
+	rKeyForID K
 	expCache  time.Duration
 }
 
-func (a *abstractRepo[T]) WithCache(
-	cache acache.Cache[acache.Key],
-	radicalKey acache.Key,
+func NewRepositoryWithCache[T any, K ~string](
+	repo *abstractRepo[T],
+	cache cache[K],
+	radicalKey K,
 	expCache time.Duration,
-) AbstractRepositoryWithCache[T] {
-	return &abstractRepoWithCache[T]{
-		repo:      a,
+) *abstractRepoWithCache[T, K] {
+	return &abstractRepoWithCache[T, K]{
+		repo:      repo,
 		cache:     cache,
 		rKey:      radicalKey,
-		rKeyForID: radicalKey.Add("_id"),
+		rKeyForID: radicalKey + ":_id",
 		expCache:  expCache,
 	}
 }
 
-func (a *abstractRepoWithCache[T]) GetByID(ctx context.Context, id ID, opts ...*options.FindOneOptions) (*T, error) {
+func (a *abstractRepoWithCache[T, k]) GetByID(ctx context.Context, id primitive.ObjectID, opts ...*options.FindOneOptions) (*T, error) {
 	data := new(T)
 
-	key := a.rKeyForID.Add(id.Hex())
+	key := a.rKeyForID + ":" + k(id.Hex())
 	if err := a.cache.GetJSON(ctx, key, data); err == nil {
 		return data, nil
 	}
@@ -53,104 +57,20 @@ func (a *abstractRepoWithCache[T]) GetByID(ctx context.Context, id ID, opts ...*
 	return data, nil
 }
 
-func (a *abstractRepoWithCache[T]) UpdateOneByID(ctx context.Context, id ID, update any) error {
+func (a *abstractRepoWithCache[T, k]) UpdateOneByID(ctx context.Context, id primitive.ObjectID, update any) error {
 	a.deleteCacheByID(id)
 
 	return a.repo.UpdateOneByID(ctx, id, update)
 }
 
-func (a *abstractRepoWithCache[T]) DeleteOneByID(ctx context.Context, id ID, opts ...*options.DeleteOptions) error {
+func (a *abstractRepoWithCache[T, k]) DeleteOneByID(ctx context.Context, id primitive.ObjectID, opts ...*options.DeleteOptions) error {
 	a.deleteCacheByID(id)
 
 	return a.repo.DeleteOneByID(ctx, id, opts...)
 }
 
-func (a *abstractRepoWithCache[T]) deleteCacheByID(id ID) {
+func (a *abstractRepoWithCache[T, k]) deleteCacheByID(id primitive.ObjectID) {
 	go func() {
-		_ = a.cache.Delete(context.Background(), a.rKeyForID.Add(id.Hex()))
+		_ = a.cache.Delete(context.Background(), a.rKeyForID+":"+k(id.Hex()))
 	}()
-}
-
-func (a *abstractRepoWithCache[T]) WithCustomFilter() CacheWithCustomFilter[T] {
-	return &cacheWithCustomFilter[T]{
-		repo:     a.repo,
-		cache:    a.cache,
-		rKey:     a.rKey.Add("custom"),
-		expCache: a.expCache,
-	}
-}
-
-type cacheWithCustomFilter[T any] struct {
-	repo     *abstractRepo[T]
-	cache    acache.Cache[acache.Key]
-	rKey     acache.Key
-	expCache time.Duration
-}
-
-func (c *cacheWithCustomFilter[T]) FindOne(ctx context.Context, filter any, opts ...*options.FindOneOptions) (*T, error) {
-	key, err := c.customKey(filter)
-	if err != nil {
-		return nil, err
-	}
-
-	data := new(T)
-
-	if err := c.cache.GetJSON(ctx, key, data); err == nil {
-		return data, nil
-	}
-
-	data, err = c.repo.FindOne(ctx, filter, opts...)
-	if err != nil {
-		return nil, err
-	}
-
-	go func() {
-		_ = c.cache.SetJSON(context.Background(), key, data, c.expCache)
-	}()
-
-	return data, nil
-}
-
-func (c *cacheWithCustomFilter[T]) Find(ctx context.Context, filter any, opts ...*options.FindOptions) ([]*T, error) {
-	key, err := c.customKey(filter)
-	if err != nil {
-		return nil, err
-	}
-
-	var data []*T
-
-	if err := c.cache.GetJSON(ctx, key, data); err == nil {
-		return data, nil
-	}
-
-	data, err = c.repo.Find(ctx, filter, opts...)
-	if err != nil {
-		return nil, err
-	}
-
-	go func() {
-		_ = c.cache.SetJSON(context.Background(), key, data, c.expCache)
-	}()
-
-	return data, nil
-}
-
-func (c *cacheWithCustomFilter[T]) customKey(filter any) (acache.Key, error) {
-	hash, err := filterHash(filter)
-	if err != nil {
-		return "", err
-	}
-
-	return c.rKey.Add(hash), nil
-}
-
-func filterHash(filter any) (string, error) {
-	content, err := json.Marshal(filter)
-	if err != nil {
-		return "", err
-	}
-
-	sum := sha256.Sum256(content)
-
-	return hex.EncodeToString(sum[0:]), nil
 }
