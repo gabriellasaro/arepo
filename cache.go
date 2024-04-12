@@ -14,8 +14,8 @@ type cache[K ~string] interface {
 	Delete(ctx context.Context, key K) error
 }
 
-type abstractRepoWithCache[T any, K ~string] struct {
-	repo      *abstractRepo[T]
+type AbstractRepoWithCache[T any, K ~string] struct {
+	repo      *AbstractRepo[T]
 	cache     cache[K]
 	rKey      K
 	rKeyForID K
@@ -23,12 +23,12 @@ type abstractRepoWithCache[T any, K ~string] struct {
 }
 
 func NewRepositoryWithCache[T any, K ~string](
-	repo *abstractRepo[T],
+	repo *AbstractRepo[T],
 	cache cache[K],
 	radicalKey K,
 	expCache time.Duration,
-) *abstractRepoWithCache[T, K] {
-	return &abstractRepoWithCache[T, K]{
+) *AbstractRepoWithCache[T, K] {
+	return &AbstractRepoWithCache[T, K]{
 		repo:      repo,
 		cache:     cache,
 		rKey:      radicalKey,
@@ -37,7 +37,7 @@ func NewRepositoryWithCache[T any, K ~string](
 	}
 }
 
-func (a *abstractRepoWithCache[T, k]) GetByID(ctx context.Context, id primitive.ObjectID, opts ...*options.FindOneOptions) (*T, error) {
+func (a *AbstractRepoWithCache[T, k]) GetByID(ctx context.Context, id primitive.ObjectID, opts ...*options.FindOneOptions) (*T, error) {
 	data := new(T)
 
 	key := a.rKeyForID + ":" + k(id.Hex())
@@ -57,19 +57,19 @@ func (a *abstractRepoWithCache[T, k]) GetByID(ctx context.Context, id primitive.
 	return data, nil
 }
 
-func (a *abstractRepoWithCache[T, k]) UpdateOneByID(ctx context.Context, id primitive.ObjectID, update any) error {
+func (a *AbstractRepoWithCache[T, k]) UpdateOneByID(ctx context.Context, id primitive.ObjectID, update any) error {
 	a.deleteCacheByID(id)
 
 	return a.repo.UpdateOneByID(ctx, id, update)
 }
 
-func (a *abstractRepoWithCache[T, k]) DeleteOneByID(ctx context.Context, id primitive.ObjectID, opts ...*options.DeleteOptions) error {
+func (a *AbstractRepoWithCache[T, k]) DeleteOneByID(ctx context.Context, id primitive.ObjectID, opts ...*options.DeleteOptions) error {
 	a.deleteCacheByID(id)
 
 	return a.repo.DeleteOneByID(ctx, id, opts...)
 }
 
-func (a *abstractRepoWithCache[T, k]) deleteCacheByID(id primitive.ObjectID) {
+func (a *AbstractRepoWithCache[T, k]) deleteCacheByID(id primitive.ObjectID) {
 	go func() {
 		_ = a.cache.Delete(context.Background(), a.rKeyForID+":"+k(id.Hex()))
 	}()
